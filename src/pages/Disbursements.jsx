@@ -171,7 +171,17 @@ export default function Disbursements() {
                       const doc = item['เอกสาร'];
                       const url = typeof doc === 'object' ? doc?.fileUrl : doc;
                       if (!url) return <span className="text-gray-300 text-xs">-</span>;
-                      if (!url.startsWith('http')) return <span className="text-gray-400 text-xs" title="ไฟล์เก่าจาก AppSheet">📄 ไฟล์เก่า</span>;
+                      if (!url.startsWith('http')) {
+                        const fname = url.split('/').pop().split('.').slice(0,-1).join('.') || url;
+                        return (
+                          <button
+                            onClick={() => toast('ไฟล์นี้มาจาก AppSheet เดิม\nชื่อไฟล์: ' + fname + '\n\nกด ✏️ แก้ไขรายการ แล้วอัพโหลดไฟล์ใหม่ได้เลยครับ', { icon: '📄', duration: 6000 })}
+                            className="text-xs text-amber-500 hover:text-amber-700 underline cursor-pointer"
+                          >
+                            📄 ไฟล์เก่า
+                          </button>
+                        );
+                      }
                       return <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline">📄 ดูไฟล์</a>;
                     })()}
                   </td>
