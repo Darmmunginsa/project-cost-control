@@ -167,11 +167,13 @@ export default function Disbursements() {
                     }`}>{item['สถานะ']}</span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {item['เอกสาร'] ? (
-                      <a href={typeof item['เอกสาร'] === 'object' ? item['เอกสาร'].fileUrl : item['เอกสาร']}
-                        target="_blank" rel="noopener noreferrer"
-                        className="text-xs text-blue-500 hover:underline">📄 ดูไฟล์</a>
-                    ) : <span className="text-gray-300 text-xs">-</span>}
+                    {(() => {
+                      const doc = item['เอกสาร'];
+                      const url = typeof doc === 'object' ? doc?.fileUrl : doc;
+                      if (!url) return <span className="text-gray-300 text-xs">-</span>;
+                      if (!url.startsWith('http')) return <span className="text-gray-400 text-xs" title="ไฟล์เก่าจาก AppSheet">📄 ไฟล์เก่า</span>;
+                      return <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline">📄 ดูไฟล์</a>;
+                    })()}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100">
