@@ -2,12 +2,20 @@ import { useState, useEffect } from 'react';
 import { getDisbursements, addDisbursement, updateDisbursement, deleteDisbursement } from '../api';
 import { formatCurrency, formatDate, formatDateInput, today } from '../utils/formatters';
 import Modal from '../components/Modal';
+import FileUpload from '../components/FileUpload';
 import toast from 'react-hot-toast';
 
 const STATUS_OPT = ['จ่ายแล้ว', 'รอพิจรณา', 'ยังไม่ได้จ่าย'];
 const TYPE_OPT   = ['ใช้ส่วนตัว', 'ใช้ในบริษัท'];
 
-const EMPTY = { 'รายการที่เบิก': '', 'วันที่': today(), 'จำนวนเงิน': '', 'คนเบิก': '', 'สถานะ': 'จ่ายแล้ว', 'ประเภท': 'ใช้ส่วนตัว', 'เอกสาร': '' };
+const EMPTY = { 'รายการที่เบิก': '', 'วันที่': today(), 'จำนวนเงิน': '', 'คนเบิก': '', 'สถานะ': 'จ่ายแล้ว', 'ประเภท': 'ใช้ส่วนตัว', 'เอกสาร': null };
+
+function parseFileField(val) {
+  if (!val) return null;
+  if (typeof val === 'object') return val;
+  if (val.startsWith('http')) return { fileUrl: val, fileName: 'ดูเอกสาร' };
+  return { fileUrl: null, fileName: val };
+}
 
 export default function Disbursements() {
   const [items, setItems] = useState([]);
@@ -35,7 +43,7 @@ export default function Disbursements() {
 
   const openAdd = () => { setForm(EMPTY); setModal({ open: true, mode: 'add' }); };
   const openEdit = (item) => {
-    setForm({ ...item, 'วันที่': formatDateInput(item['วันที่']) });
+    setForm({ ...item, 'วันที่': formatDateInput(item['วันที่']), 'เอกสาร': parseFileField(item['เอกสาร']) });
     setModal({ open: true, mode: 'edit', data: item });
   };
 
@@ -43,11 +51,12 @@ export default function Disbursements() {
     if (!form['รายการที่เบิก']) { toast.error('กรุณากรอกรายการ'); return; }
     setSaving(true);
     try {
+      const payload = { ...form, 'เอกสาร': form['เอกสาร']?.fileUrl || form['เอกสาร'] || '' };
       if (modal.mode === 'add') {
-        await addDisbursement(form);
+        await addDisbursement(payload);
         toast.success('เพิ่มรายการสำเร็จ');
       } else {
-        await updateDisbursement({ ...form, rowIndex: modal.data._rowIndex });
+        await updateDisbursement({ ...payload, rowIndex: modal.data._rowIndex });
         toast.success('แก้ไขสำเร็จ');
       }
       setModal({ open: false });
@@ -136,6 +145,7 @@ export default function Disbursements() {
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">คนเบิก</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">ประเภท</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">สถานะ</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500">หลักฐาน</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -155,6 +165,13 @@ export default function Disbursements() {
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                       item['สถานะ'] === 'จ่ายแล้ว' ? 'badge-paid' : 'badge-pending'
                     }`}>{item['สถานะ']}</span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {item['เอกสาร'] ? (
+                      <a href={typeof item['เอกสาร'] === 'object' ? item['เอกสาร'].fileUrl : item['เอกสาร']}
+                        target="_blank" rel="noopener noreferrer"
+                        className="text-xs text-blue-500 hover:underline">📄 ดูไฟล์</a>
+                    ) : <span className="text-gray-300 text-xs">-</span>}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100">
@@ -214,6 +231,13 @@ export default function Disbursements() {
               {STATUS_OPT.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
+          <FileUpload
+            label="หลักฐานการเบิก/จ่าย (รูปหรือ PDF)"
+            value={form['เอกสาร']}
+            onChange={v => setForm({...form, 'เอกสาร': v})}
+            subfolder="disbursements"
+            accept="image/*,.pdf"
+          />
         </div>
         <div className="flex justify-end gap-3 mt-5">
           <button onClick={() => setModal({ open: false })} className="btn-secondary">ยกเลิก</button>
