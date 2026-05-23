@@ -4,8 +4,8 @@
 // ============================================================
 
 // ===== CONFIG: แก้ไขค่าเหล่านี้ให้ตรงกับ Google Sheets ของคุณ =====
-const SPREADSHEET_ID = '1OheGAygDZTlsLW5aCrQ79S9y8zmbqfPI0LELP04WBZE'; // ID ของ Google Sheets
-const DRIVE_FOLDER_ID = '1sB8FVJaxYrLJzSBNv-Oa2Lt2xaW521_8'; // ID ของ Google Drive folder สำหรับเก็บไฟล์
+const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE'; // ID ของ Google Sheets
+const DRIVE_FOLDER_ID = 'YOUR_DRIVE_FOLDER_ID_HERE'; // ID ของ Google Drive folder สำหรับเก็บไฟล์
 
 // Sheet names
 const SHEET_PROJECTS = 'Projects';
@@ -13,7 +13,6 @@ const SHEET_COSTS = 'ProjectCost';
 const SHEET_DOCUMENTS = 'ProjectDocument';
 const SHEET_DISBURSEMENTS = 'รายการเบิก';
 const SHEET_USERS = 'Users';
-const SHEET_PARTNERS = 'Partners';
 
 // ===== CORS & ROUTING =====
 function doGet(e) {
@@ -78,12 +77,6 @@ function handleRequest(e) {
 
       // Summary
       case 'getSummary':        result = getSummary(); break;
-
-      // Partners
-      case 'getPartners':       result = getPartners(); break;
-      case 'addPartner':        result = addPartner(data); break;
-      case 'updatePartner':     result = updatePartner(data); break;
-      case 'deletePartner':     result = deletePartner(data.id); break;
 
       // File Upload
       case 'uploadFile':        result = uploadFile(data); break;
@@ -206,17 +199,7 @@ function sheetToObjects(sheet) {
 }
 
 // ===== PROJECTS =====
-function ensureProjectsColumns() {
-  const sheet = getSheet(SHEET_PROJECTS);
-  if (!sheet) return;
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  if (headers.indexOf('PartnerShares') === -1) {
-    sheet.getRange(1, headers.length + 1).setValue('PartnerShares');
-  }
-}
-
 function getProjects() {
-  ensureProjectsColumns();
   const sheet = getSheet(SHEET_PROJECTS);
   const projects = sheetToObjects(sheet);
   return { success: true, data: projects };
@@ -380,57 +363,17 @@ function getSummary() {
   const projects = sheetToObjects(getSheet(SHEET_PROJECTS));
   const costs = sheetToObjects(getSheet(SHEET_COSTS));
   const disbursements = sheetToObjects(getSheet(SHEET_DISBURSEMENTS));
-  const partners = getPartnersData();
 
   const done = projects.filter(p => p.Status === 'Done');
   const onProcess = projects.filter(p => p.Status === 'On Process');
 
-  const totalRevenue = projects.reduce((sum, p) => sum + (parseFloat(p.NetPrice) || 0), 0);
+  const totalRevenue = done.reduce((sum, p) => sum + (parseFloat(p.NetPrice) || 0), 0);
   const totalCost = costs.reduce((sum, c) => sum + (parseFloat(c.Amount) || 0), 0);
-  const totalProfit = totalRevenue - totalCost;
+  const profit = totalRevenue - totalCost;
 
   const pendingPayment = projects.filter(p => p.PaymentStatus === 'Pending').length;
   const totalDisbursed = disbursements.reduce((sum, d) => sum + (parseFloat(d['จำนวนเงิน']) || 0), 0);
   const pendingDisbursements = disbursements.filter(d => d['สถานะ'] !== 'จ่ายแล้ว').length;
-
-  // คำนวณส่วนแบ่งกำไรแบบ per-project จาก PartnerShares JSON
-  const partnerShareMap = {};
-  partners.forEach(p => { partnerShareMap[p.PartnerID] = 0; });
-
-  projects.forEach(function(project) {
-    var projectCosts = costs.filter(function(c) { return c.ProjectID === project.ProjectID; });
-    var projectCostTotal = projectCosts.reduce(function(sum, c) { return sum + (parseFloat(c.Amount) || 0); }, 0);
-    var projectProfit = (parseFloat(project.NetPrice) || 0) - projectCostTotal;
-
-    // อ่าน PartnerShares JSON เช่น {"ดาม":40,"กฤต":60}
-    var shares = {};
-    try {
-      if (project.PartnerShares) shares = JSON.parse(project.PartnerShares);
-    } catch(e) {}
-
-    partners.forEach(function(p) {
-      var pct = parseFloat(shares[p.Name]) || 0;
-      partnerShareMap[p.PartnerID] += projectProfit * pct / 100;
-    });
-  });
-
-  const profitSharing = partners.map(function(p) {
-    var share = partnerShareMap[p.PartnerID] || 0;
-    var disbursed = disbursements
-      .filter(function(d) {
-        var nameMatch = d['คนเบิก'] && d['คนเบิก'].toString().trim() === (p.DisbursementName || '').trim();
-        var typeMatch = !p.DisbursementType || p.DisbursementType === '' || d['ประเภท'] === p.DisbursementType;
-        return nameMatch && typeMatch;
-      })
-      .reduce(function(sum, d) { return sum + (parseFloat(d['จำนวนเงิน']) || 0); }, 0);
-    return {
-      id: p.PartnerID,
-      name: p.Name,
-      share: share,
-      disbursed: disbursed,
-      remaining: share - disbursed
-    };
-  });
 
   return {
     success: true,
@@ -439,76 +382,12 @@ function getSummary() {
       งานที่ทำเสร็จแล้ว: done.length,
       รายได้สุทธิ: totalRevenue,
       ต้นทุนรวม: totalCost,
-      กำไร: totalProfit,
+      กำไร: profit,
       รอพิจรณาเพื่อจ่าย: pendingPayment,
       อื่นๆที่รอจ่าย: pendingDisbursements,
-      สรุปเบิกจ่ายตาม: totalDisbursed,
-      profitSharing: profitSharing
+      สรุปเบิกจ่ายตาม: totalDisbursed
     }
   };
-}
-
-// ===== PARTNERS =====
-function getPartnersData() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName(SHEET_PARTNERS);
-  if (!sheet) {
-    sheet = ss.insertSheet(SHEET_PARTNERS);
-    sheet.getRange(1, 1, 1, 4).setValues([['PartnerID', 'Name', 'DisbursementName', 'DisbursementType']]);
-  } else {
-    // migrate: add DisbursementType column if missing
-    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    if (headers.indexOf('DisbursementType') === -1) {
-      sheet.getRange(1, headers.length + 1).setValue('DisbursementType');
-    }
-  }
-  return sheetToObjects(sheet);
-}
-
-function getPartners() {
-  return { success: true, data: getPartnersData() };
-}
-
-function addPartner(data) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName(SHEET_PARTNERS);
-  if (!sheet) {
-    sheet = ss.insertSheet(SHEET_PARTNERS);
-    sheet.getRange(1, 1, 1, 4).setValues([['PartnerID', 'Name', 'DisbursementName', 'DisbursementType']]);
-  }
-  const id = generateId();
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const row = headers.map(function(h) {
-    if (h === 'PartnerID') return id;
-    return data[h] !== undefined ? data[h] : '';
-  });
-  sheet.appendRow(row);
-  return { success: true, id };
-}
-
-function updatePartner(data) {
-  const sheet = getSheet(SHEET_PARTNERS);
-  if (!sheet) return { success: false, error: 'Partners sheet not found' };
-  const partners = sheetToObjects(sheet);
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const partner = partners.find(p => p.PartnerID === data.PartnerID);
-  if (!partner) return { success: false, error: 'Partner not found' };
-  const row = headers.map(function(h) {
-    if (h === 'PartnerID') return partner.PartnerID;
-    return data[h] !== undefined ? data[h] : (partner[h] || '');
-  });
-  sheet.getRange(partner._rowIndex, 1, 1, headers.length).setValues([row]);
-  return { success: true };
-}
-
-function deletePartner(id) {
-  const sheet = getSheet(SHEET_PARTNERS);
-  if (!sheet) return { success: false, error: 'Partners sheet not found' };
-  const partners = sheetToObjects(sheet);
-  const partner = partners.find(p => p.PartnerID === id);
-  if (!partner) return { success: false, error: 'Partner not found' };
-  sheet.deleteRow(partner._rowIndex);
-  return { success: true };
 }
 
 // ===== FILE UPLOAD =====

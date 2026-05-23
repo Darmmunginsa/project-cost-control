@@ -11,7 +11,7 @@ const PAYMENT_STATUS = ['Pending', 'Paid'];
 const EMPTY_FORM = {
   ProjectName: '', ProjectNo: '', MainVendor: '', SubVendor: '',
   QTNumber: '', Date: today(), NetPrice: '', Status: 'On Process',
-  Logs: '', PaymentDueDate: '', PaymentStatus: 'Pending', PartnerShares: '',
+  Logs: '', PaymentDueDate: '', PaymentStatus: 'Pending', ProjectOwner: '',
 };
 
 export default function Projects() {
@@ -50,25 +50,8 @@ export default function Projects() {
       ...project,
       Date: formatDateInput(project.Date),
       PaymentDueDate: formatDateInput(project.PaymentDueDate),
-      PartnerShares: project.PartnerShares || '',
     });
     setModal({ open: true, mode: 'edit', data: project });
-  };
-
-  // Parse PartnerShares JSON string → object, e.g. '{"ดาม":40,"กฤต":60}' → {ดาม:40,กฤต:60}
-  const parseShares = (sharesStr) => {
-    try { return sharesStr ? JSON.parse(sharesStr) : {}; } catch { return {}; }
-  };
-
-  const setShare = (partnerName, value) => {
-    const current = parseShares(form.PartnerShares);
-    current[partnerName] = value === '' ? '' : parseFloat(value) || 0;
-    setForm({ ...form, PartnerShares: JSON.stringify(current) });
-  };
-
-  const totalShares = () => {
-    const obj = parseShares(form.PartnerShares);
-    return Object.values(obj).reduce((s, v) => s + (parseFloat(v) || 0), 0);
   };
 
   const handleSave = async () => {
@@ -169,7 +152,7 @@ export default function Projects() {
                         <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Vendor หลัก</th>
                         <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">QT Number</th>
                         <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Net Price</th>
-                        <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">สัดส่วน</th>
+                        <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">เจ้าของ</th>
                         <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">สถานะการชำระ</th>
                         <th className="px-4 py-3"></th>
                       </tr>
@@ -187,17 +170,8 @@ export default function Projects() {
                           <td className="px-4 py-3 text-gray-500 font-mono text-xs">{p.QTNumber || '-'}</td>
                           <td className="px-4 py-3 text-right font-semibold text-gray-800">{formatCurrency(p.NetPrice)}</td>
                           <td className="px-4 py-3 text-center">
-                            {p.PartnerShares
-                              ? (() => {
-                                  try {
-                                    const obj = JSON.parse(p.PartnerShares);
-                                    return (
-                                      <span className="text-xs text-gray-600">
-                                        {Object.entries(obj).map(([k,v]) => `${k} ${v}%`).join(' / ')}
-                                      </span>
-                                    );
-                                  } catch { return <span className="text-gray-300 text-xs">-</span>; }
-                                })()
+                            {p.ProjectOwner
+                              ? <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">👑 {p.ProjectOwner}</span>
                               : <span className="text-gray-300 text-xs">-</span>}
                           </td>
                           <td className="px-4 py-3 text-center">
@@ -281,40 +255,15 @@ export default function Projects() {
               {PAYMENT_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
-          <div className="col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">สัดส่วนกำไร (%)</label>
-            {partners.length === 0 ? (
-              <p className="text-xs text-gray-400">ยังไม่มีหุ้นส่วน กรุณาตั้งค่าหุ้นส่วนก่อน</p>
-            ) : (
-              <div className="space-y-2">
-                {partners.map(p => {
-                  const shares = parseShares(form.PartnerShares);
-                  return (
-                    <div key={p.PartnerID} className="flex items-center gap-3">
-                      <span className="text-sm text-gray-700 w-24 flex-shrink-0">{p.Name}</span>
-                      <div className="relative flex-1">
-                        <input
-                          className="input-field pr-8"
-                          type="number" min="0" max="100" step="1"
-                          placeholder="0"
-                          value={shares[p.Name] ?? ''}
-                          onChange={e => setShare(p.Name, e.target.value)}
-                        />
-                        <span className="absolute right-3 top-2 text-gray-400 text-sm">%</span>
-                      </div>
-                    </div>
-                  );
-                })}
-                {(() => {
-                  const total = totalShares();
-                  return (
-                    <p className={`text-xs mt-1 ${Math.abs(total - 100) < 0.01 ? 'text-green-600' : total > 100 ? 'text-red-500' : 'text-amber-600'}`}>
-                      รวม: {total}% {Math.abs(total - 100) < 0.01 ? '✅' : total > 100 ? '⚠️ เกิน 100%' : `⚠️ ขาดอีก ${100 - total}%`}
-                    </p>
-                  );
-                })()}
-              </div>
-            )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">เจ้าของ Project</label>
+            <select className="input-field" value={form.ProjectOwner} onChange={e => setForm({...form, ProjectOwner: e.target.value})}>
+              <option value="">ไม่มีเจ้าของ (แบ่งตาม % ปกติ)</option>
+              {partners.map(p => (
+                <option key={p.PartnerID} value={p.Name}>{p.Name} → ได้ 70%</option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-400 mt-1">ถ้าเลือก → เจ้าของได้ 70%, อีกคนได้ 30%</p>
           </div>
           <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">หมายเหตุ / Logs</label>

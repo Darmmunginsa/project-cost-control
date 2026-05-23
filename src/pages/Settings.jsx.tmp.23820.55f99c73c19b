@@ -127,6 +127,16 @@ export default function Settings() {
               placeholder="เช่น ดาม, AIDA" />
           </div>
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">สัดส่วน % *</label>
+            <div className="relative">
+              <input className="input-field pr-8" type="number" min="0" max="100" step="0.01"
+                value={form.Percentage}
+                onChange={e => setForm({...form, Percentage: e.target.value})}
+                placeholder="40" />
+              <span className="absolute right-3 top-2 text-gray-400 text-sm">%</span>
+            </div>
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               เชื่อมกับชื่อในรายการเบิก
             </label>
