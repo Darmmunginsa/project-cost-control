@@ -87,3 +87,9 @@ export const getUsers = () => call('getUsers');
 export const addUser = (data) => call('addUser', data);
 export const updateUser = (data) => call('updateUser', data);
 export const deleteUser = (id) => call('deleteUser', { id });
+
+// ===== PARTNERS =====
+export const getPartners = () => call('getPartners');
+export const addPartner = (data) => call('addPartner', data);
+export const updatePartner = (data) => call('updatePartner', data);
+export const deletePartner = (id) => call('deletePartner', { id });

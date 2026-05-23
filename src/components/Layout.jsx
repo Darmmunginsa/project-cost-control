@@ -5,6 +5,7 @@ const navItems = [
   { path: '/dashboard', label: 'ภาพรวม', icon: '📊' },
   { path: '/projects', label: 'Projects', icon: '📁' },
   { path: '/disbursements', label: 'เบิกจ่าย', icon: '💸' },
+  { path: '/settings', label: 'ตั้งค่า', icon: '⚙️' },
 ];
 
 export default function Layout({ children }) {

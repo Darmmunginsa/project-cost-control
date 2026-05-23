@@ -4,6 +4,51 @@ import { formatCurrency } from '../utils/formatters';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
+function ProfitShareCard({ partner }) {
+  const pct = parseFloat(partner.percentage) || 0;
+  const share = parseFloat(partner.share) || 0;
+  const disbursed = parseFloat(partner.disbursed) || 0;
+  const remaining = share - disbursed;
+  const progress = share > 0 ? Math.min((disbursed / share) * 100, 100) : 0;
+
+  return (
+    <div className="card p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+            {pct}%
+          </div>
+          <p className="font-semibold text-gray-900">{partner.name}</p>
+        </div>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${remaining >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+          {remaining >= 0 ? 'คงค้าง' : 'เบิกเกิน'}
+        </span>
+      </div>
+      <div className="space-y-1 text-sm mb-3">
+        <div className="flex justify-between">
+          <span className="text-gray-400">ส่วนแบ่งกำไร</span>
+          <span className="font-semibold text-blue-700">{formatCurrency(share)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-400">เบิกไปแล้ว</span>
+          <span className="font-semibold text-orange-500">− {formatCurrency(disbursed)}</span>
+        </div>
+        <div className="flex justify-between border-t border-gray-100 pt-1">
+          <span className="text-gray-500 font-medium">คงเหลือต้องจ่าย</span>
+          <span className={`font-bold ${remaining >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+            {formatCurrency(remaining)}
+          </span>
+        </div>
+      </div>
+      {/* Progress bar */}
+      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
+      </div>
+      <p className="text-xs text-gray-400 mt-1 text-right">เบิกไปแล้ว {progress.toFixed(0)}%</p>
+    </div>
+  );
+}
+
 function StatCard({ label, value, icon, color, linkTo, sub }) {
   const card = (
     <div className={`card p-5 ${linkTo ? 'hover:shadow-md transition-shadow cursor-pointer' : ''}`}>
@@ -102,7 +147,7 @@ export default function Dashboard() {
 
           {/* Disbursement Stats */}
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">การเบิกจ่าย</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4 mb-6">
             <StatCard
               label="รอพิจรณาเพื่อจ่าย"
               value={summary['รอพิจรณาเพื่อจ่าย']}
@@ -118,13 +163,36 @@ export default function Dashboard() {
               linkTo="/disbursements"
             />
             <StatCard
-              label="สรุปเบิกจ่ายตาม"
+              label="สรุปเบิกจ่ายทั้งหมด"
               value={formatCurrency(summary['สรุปเบิกจ่ายตาม'])}
               icon="💸"
               color="text-purple-600"
               linkTo="/disbursements"
             />
           </div>
+
+          {/* Profit Sharing */}
+          {summary.profitSharing && summary.profitSharing.length > 0 && (
+            <>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">ส่วนแบ่งกำไรหุ้นส่วน</h2>
+                <Link to="/settings" className="text-xs text-blue-500 hover:underline">⚙️ ตั้งค่า</Link>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {summary.profitSharing.map((p, i) => (
+                  <ProfitShareCard key={i} partner={p} />
+                ))}
+              </div>
+            </>
+          )}
+
+          {summary.profitSharing && summary.profitSharing.length === 0 && (
+            <div className="card p-5 text-center text-gray-400">
+              <p className="text-2xl mb-2">👥</p>
+              <p className="text-sm">ยังไม่ได้ตั้งค่าหุ้นส่วน</p>
+              <Link to="/settings" className="text-blue-500 text-sm hover:underline mt-1 inline-block">ไปตั้งค่าเลย →</Link>
+            </div>
+          )}
         </>
       )}
     </div>

@@ -8,6 +8,7 @@ import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Disbursements from './pages/Disbursements';
 import Users from './pages/Users';
+import Settings from './pages/Settings';
 
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading } = useAuth();
@@ -36,6 +37,7 @@ function AppRoutes() {
       <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
       <Route path="/disbursements" element={<ProtectedRoute><Disbursements /></ProtectedRoute>} />
       <Route path="/users" element={<ProtectedRoute adminOnly><Users /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
