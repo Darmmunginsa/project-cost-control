@@ -340,8 +340,8 @@ export default function ProjectDetail() {
               ))}
             </div>
           </div>
-          <FileUpload label="หลักฐานการซื้อ (ใบเสร็จ)" value={costForm.Attachment} onChange={v => setCostForm({...costForm, Attachment: v})} subfolder="receipts" accept="image/*,.pdf" />
-          <FileUpload label="หลักฐานการจ่าย (Slip)" value={costForm.Slip} onChange={v => setCostForm({...costForm, Slip: v})} subfolder="slips" accept="image/*,.pdf" />
+          <FileUpload label="หลักฐานการซื้อ (ใบเสร็จ)" value={costForm.Attachment} onChange={v => setCostForm({...costForm, Attachment: v})} subfolder="receipts" accept="image/*,.pdf" canDelete={isAdmin} />
+          <FileUpload label="หลักฐานการจ่าย (Slip)" value={costForm.Slip} onChange={v => setCostForm({...costForm, Slip: v})} subfolder="slips" accept="image/*,.pdf" canDelete={isAdmin} />
         </div>
         <div className="flex justify-end gap-3 mt-5">
           <button onClick={() => setCostModal({ open: false })} className="btn-secondary">ยกเลิก</button>
@@ -360,7 +360,7 @@ export default function ProjectDetail() {
             <label className="block text-sm font-medium text-gray-700 mb-1">วันที่เอกสาร</label>
             <input className="input-field" type="date" value={docForm.DocDate} onChange={e => setDocForm({...docForm, DocDate: e.target.value})} />
           </div>
-          <FileUpload label="แนบไฟล์เอกสาร" value={docForm.FileAttachment} onChange={v => setDocForm({...docForm, FileAttachment: v})} subfolder="documents" accept=".pdf,image/*" />
+          <FileUpload label="แนบไฟล์เอกสาร" value={docForm.FileAttachment} onChange={v => setDocForm({...docForm, FileAttachment: v})} subfolder="documents" accept=".pdf,image/*" canDelete={isAdmin} />
         </div>
         <div className="flex justify-end gap-3 mt-5">
           <button onClick={() => setDocModal({ open: false })} className="btn-secondary">ยกเลิก</button>

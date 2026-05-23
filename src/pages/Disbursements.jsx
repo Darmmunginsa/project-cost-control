@@ -252,6 +252,7 @@ export default function Disbursements() {
             onChange={v => setForm({...form, 'เอกสาร': v})}
             subfolder="disbursements"
             accept="image/*,.pdf"
+            canDelete={isAdmin}
           />
         </div>
         <div className="flex justify-end gap-3 mt-5">

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { uploadFile } from '../api';
 import toast from 'react-hot-toast';
 
-export default function FileUpload({ label, value, onChange, subfolder = 'uploads', accept = '*' }) {
+export default function FileUpload({ label, value, onChange, subfolder = 'uploads', accept = '*', canDelete = true }) {
   const [uploading, setUploading] = useState(false);
 
   const handleFile = async (e) => {
@@ -41,11 +41,13 @@ export default function FileUpload({ label, value, onChange, subfolder = 'upload
                 {fileName}
               </a>
             </div>
-            <button type="button" onClick={() => onChange(null)} className="text-gray-400 hover:text-red-500">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            {canDelete && (
+              <button type="button" onClick={() => onChange(null)} className="text-gray-400 hover:text-red-500">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
         ) : (
           <label className="flex flex-col items-center cursor-pointer py-2">
