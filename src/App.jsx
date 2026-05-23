@@ -1,6 +1,7 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -9,6 +10,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import Disbursements from './pages/Disbursements';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading } = useAuth();
@@ -38,6 +40,7 @@ function AppRoutes() {
       <Route path="/disbursements" element={<ProtectedRoute><Disbursements /></ProtectedRoute>} />
       <Route path="/users" element={<ProtectedRoute adminOnly><Users /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute adminOnly><Settings /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
@@ -47,6 +50,7 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
+      <ThemeProvider>
       <HashRouter>
         <AppRoutes />
         <Toaster
@@ -58,6 +62,7 @@ export default function App() {
           }}
         />
       </HashRouter>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

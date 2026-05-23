@@ -32,8 +32,15 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  // อัปเดต user ใน state + localStorage (ใช้หลัง edit profile)
+  const refreshUser = (updatedFields) => {
+    const newUser = { ...user, ...updatedFields };
+    localStorage.setItem('pcc_user', JSON.stringify(newUser));
+    setUser(newUser);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

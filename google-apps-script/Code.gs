@@ -579,9 +579,18 @@ function updateUser(data) {
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const user = users.find(u => u.UserID === data.UserID);
   if (!user) return { success: false, error: 'User not found' };
+
+  // ถ้ามี OldPassword ให้ตรวจสอบก่อนเปลี่ยน
+  if (data.OldPassword) {
+    if (user.Password !== hashPassword(data.OldPassword)) {
+      return { success: false, error: 'รหัสผ่านเดิมไม่ถูกต้อง' };
+    }
+  }
+
   const row = headers.map(h => {
     if (h === 'Password' && data.Password) return hashPassword(data.Password);
     if (h === 'Password') return user.Password;
+    if (h === 'DisplayName' && data.DisplayName) return data.DisplayName;
     return data[h] !== undefined ? data[h] : user[h] || '';
   });
   sheet.getRange(user._rowIndex, 1, 1, headers.length).setValues([row]);
