@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 function ProfitShareCard({ partner }) {
-  const pct = parseFloat(partner.percentage) || 0;
   const share = parseFloat(partner.share) || 0;
   const disbursed = parseFloat(partner.disbursed) || 0;
   const remaining = share - disbursed;
@@ -14,12 +13,7 @@ function ProfitShareCard({ partner }) {
   return (
     <div className="card p-4">
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-            {pct}%
-          </div>
-          <p className="font-semibold text-gray-900">{partner.name}</p>
-        </div>
+        <p className="font-semibold text-gray-900">{partner.name}</p>
         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${remaining >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
           {remaining >= 0 ? 'คงค้าง' : 'เบิกเกิน'}
         </span>
@@ -145,18 +139,31 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Disbursement Stats */}
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">การเบิกจ่าย</h2>
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          {/* Customer Payment */}
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">ลูกค้าค้างชำระ</h2>
+          <div className="grid grid-cols-2 gap-4 mb-6">
             <StatCard
-              label="รอพิจรณาเพื่อจ่าย"
+              label="Project ที่ลูกค้ายังไม่จ่าย"
               value={summary['รอพิจรณาเพื่อจ่าย']}
               icon="⏳"
               color="text-amber-600"
               linkTo="/projects"
+              sub="คลิกเพื่อดู Projects ทั้งหมด"
             />
             <StatCard
-              label="อื่นๆ ที่รอจ่าย"
+              label="รายได้ที่รอรับ"
+              value={formatCurrency(summary['รายได้รอรับ'] || 0)}
+              icon="💳"
+              color="text-amber-700"
+              linkTo="/projects"
+            />
+          </div>
+
+          {/* Disbursement Stats */}
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">การเบิกจ่าย</h2>
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <StatCard
+              label="รายการเบิกที่รอจ่าย"
               value={summary['อื่นๆที่รอจ่าย']}
               icon="📋"
               color="text-orange-600"

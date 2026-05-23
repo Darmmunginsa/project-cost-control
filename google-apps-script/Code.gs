@@ -385,19 +385,24 @@ function getSummary() {
   const done = projects.filter(p => p.Status === 'Done');
   const onProcess = projects.filter(p => p.Status === 'On Process');
 
-  const totalRevenue = projects.reduce((sum, p) => sum + (parseFloat(p.NetPrice) || 0), 0);
+  // นับเฉพาะ Project ที่ลูกค้าจ่ายแล้ว (Paid) เป็นรายได้จริง
+  const paidProjects = projects.filter(p => p.PaymentStatus === 'Paid');
+  const totalRevenue = paidProjects.reduce((sum, p) => sum + (parseFloat(p.NetPrice) || 0), 0);
   const totalCost = costs.reduce((sum, c) => sum + (parseFloat(c.Amount) || 0), 0);
   const totalProfit = totalRevenue - totalCost;
 
-  const pendingPayment = projects.filter(p => p.PaymentStatus === 'Pending').length;
+  const pendingProjects = projects.filter(p => p.PaymentStatus === 'Pending');
+  const pendingPayment = pendingProjects.length;
+  const pendingRevenue = pendingProjects.reduce((sum, p) => sum + (parseFloat(p.NetPrice) || 0), 0);
   const totalDisbursed = disbursements.reduce((sum, d) => sum + (parseFloat(d['จำนวนเงิน']) || 0), 0);
   const pendingDisbursements = disbursements.filter(d => d['สถานะ'] !== 'จ่ายแล้ว').length;
 
   // คำนวณส่วนแบ่งกำไรแบบ per-project จาก PartnerShares JSON
+  // นับเฉพาะ Project ที่ลูกค้าจ่ายแล้ว (Paid) เท่านั้น
   const partnerShareMap = {};
   partners.forEach(p => { partnerShareMap[p.PartnerID] = 0; });
 
-  projects.forEach(function(project) {
+  paidProjects.forEach(function(project) {
     var projectCosts = costs.filter(function(c) { return c.ProjectID === project.ProjectID; });
     var projectCostTotal = projectCosts.reduce(function(sum, c) { return sum + (parseFloat(c.Amount) || 0); }, 0);
     var projectProfit = (parseFloat(project.NetPrice) || 0) - projectCostTotal;
@@ -420,7 +425,8 @@ function getSummary() {
       .filter(function(d) {
         var nameMatch = d['คนเบิก'] && d['คนเบิก'].toString().trim() === (p.DisbursementName || '').trim();
         var typeMatch = !p.DisbursementType || p.DisbursementType === '' || d['ประเภท'] === p.DisbursementType;
-        return nameMatch && typeMatch;
+        var statusMatch = !p.DisbursementStatus || p.DisbursementStatus === '' || d['สถานะ'] === p.DisbursementStatus;
+        return nameMatch && typeMatch && statusMatch;
       })
       .reduce(function(sum, d) { return sum + (parseFloat(d['จำนวนเงิน']) || 0); }, 0);
     return {
@@ -441,6 +447,7 @@ function getSummary() {
       ต้นทุนรวม: totalCost,
       กำไร: totalProfit,
       รอพิจรณาเพื่อจ่าย: pendingPayment,
+      รายได้รอรับ: pendingRevenue,
       อื่นๆที่รอจ่าย: pendingDisbursements,
       สรุปเบิกจ่ายตาม: totalDisbursed,
       profitSharing: profitSharing
@@ -456,10 +463,14 @@ function getPartnersData() {
     sheet = ss.insertSheet(SHEET_PARTNERS);
     sheet.getRange(1, 1, 1, 4).setValues([['PartnerID', 'Name', 'DisbursementName', 'DisbursementType']]);
   } else {
-    // migrate: add DisbursementType column if missing
+    // migrate: add missing columns
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     if (headers.indexOf('DisbursementType') === -1) {
       sheet.getRange(1, headers.length + 1).setValue('DisbursementType');
+    }
+    const headers2 = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    if (headers2.indexOf('DisbursementStatus') === -1) {
+      sheet.getRange(1, headers2.length + 1).setValue('DisbursementStatus');
     }
   }
   return sheetToObjects(sheet);

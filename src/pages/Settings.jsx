@@ -3,7 +3,7 @@ import { getPartners, addPartner, updatePartner, deletePartner } from '../api';
 import Modal from '../components/Modal';
 import toast from 'react-hot-toast';
 
-const EMPTY = { Name: '', DisbursementName: '' };
+const EMPTY = { Name: '', DisbursementName: '', DisbursementType: '', DisbursementStatus: '' };
 
 export default function Settings() {
   const [partners, setPartners] = useState([]);
@@ -99,6 +99,9 @@ export default function Settings() {
                       {p.DisbursementType && (
                         <span className="ml-1">· ประเภท: <span className="font-mono bg-purple-100 text-purple-600 px-1 rounded">{p.DisbursementType}</span></span>
                       )}
+                      {p.DisbursementStatus && (
+                        <span className="ml-1">· <span className="font-mono bg-green-100 text-green-700 px-1 rounded">เฉพาะ{p.DisbursementStatus}</span></span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -146,6 +149,17 @@ export default function Settings() {
               <option value="ใช้ในบริษัท">ใช้ในบริษัท</option>
             </select>
             <p className="text-xs text-gray-400 mt-1">เบิกประเภทนี้เท่านั้นที่นับหักออกจากส่วนแบ่งกำไร</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              นับเฉพาะสถานะการจ่าย
+            </label>
+            <select className="input-field" value={form.DisbursementStatus || ''}
+              onChange={e => setForm({...form, DisbursementStatus: e.target.value})}>
+              <option value="">ทั้งหมด (รวมที่ยังไม่จ่าย)</option>
+              <option value="จ่ายแล้ว">จ่ายแล้ว เท่านั้น</option>
+            </select>
+            <p className="text-xs text-gray-400 mt-1">แนะนำ: เลือก "จ่ายแล้ว" เพื่อให้คำนวณเฉพาะยอดที่จ่ายจริงแล้ว</p>
           </div>
         </div>
         <div className="flex justify-end gap-3 mt-5">
