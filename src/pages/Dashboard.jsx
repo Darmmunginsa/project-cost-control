@@ -118,12 +118,13 @@ export default function Dashboard() {
 
           {/* Financial Stats */}
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">ข้อมูลการเงิน</h2>
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-4 mb-3">
             <StatCard
               label="รายได้สุทธิ"
               value={formatCurrency(summary['รายได้สุทธิ'])}
               icon="💰"
               color="text-blue-600"
+              sub="เฉพาะ Project ที่ลูกค้าจ่ายแล้ว"
             />
             <StatCard
               label="ต้นทุนรวม"
@@ -131,11 +132,20 @@ export default function Dashboard() {
               icon="📉"
               color="text-red-500"
             />
+          </div>
+          <div className="grid grid-cols-2 gap-4 mb-6">
             <StatCard
               label="กำไร"
               value={formatCurrency(summary['กำไร'])}
               icon="📈"
               color={parseFloat(summary['กำไร']) >= 0 ? 'text-emerald-600' : 'text-red-600'}
+            />
+            <StatCard
+              label="💼 เงินกองกลาง"
+              value={formatCurrency(summary['เงินกองกลาง'])}
+              icon="🏦"
+              color={parseFloat(summary['เงินกองกลาง']) >= 0 ? 'text-violet-600' : 'text-red-600'}
+              sub="กำไร − ยอดที่เบิกจ่ายแล้ว"
             />
           </div>
 

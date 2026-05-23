@@ -397,6 +397,12 @@ function getSummary() {
   const totalDisbursed = disbursements.reduce((sum, d) => sum + (parseFloat(d['จำนวนเงิน']) || 0), 0);
   const pendingDisbursements = disbursements.filter(d => d['สถานะ'] !== 'จ่ายแล้ว').length;
 
+  // เงินกองกลาง = กำไร (เฉพาะ Paid projects) − ยอดที่จ่ายออกจริงแล้ว
+  const totalActuallyPaid = disbursements
+    .filter(d => d['สถานะ'] === 'จ่ายแล้ว')
+    .reduce(function(sum, d) { return sum + (parseFloat(d['จำนวนเงิน']) || 0); }, 0);
+  const เงินกองกลาง = totalProfit - totalActuallyPaid;
+
   // คำนวณส่วนแบ่งกำไรแบบ per-project จาก PartnerShares JSON
   // นับเฉพาะ Project ที่ลูกค้าจ่ายแล้ว (Paid) เท่านั้น
   const partnerShareMap = {};
@@ -446,6 +452,7 @@ function getSummary() {
       รายได้สุทธิ: totalRevenue,
       ต้นทุนรวม: totalCost,
       กำไร: totalProfit,
+      เงินกองกลาง: เงินกองกลาง,
       รอพิจรณาเพื่อจ่าย: pendingPayment,
       รายได้รอรับ: pendingRevenue,
       อื่นๆที่รอจ่าย: pendingDisbursements,
