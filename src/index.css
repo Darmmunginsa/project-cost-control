@@ -76,20 +76,6 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
-/* Toast — center on mobile, top-right on desktop */
-.toast-container > div {
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  right: auto !important;
-}
-@media (min-width: 640px) {
-  .toast-container > div {
-    left: auto !important;
-    right: 16px !important;
-    transform: none !important;
-  }
-}
-
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #f1f5f9; }
