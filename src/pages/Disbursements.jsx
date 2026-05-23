@@ -102,7 +102,7 @@ export default function Disbursements() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-4 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
         <div className="card p-4">
           <p className="text-xs text-gray-400">รวมทั้งหมด</p>
           <p className="text-xl font-bold text-gray-900">{formatCurrency(totalAmount)}</p>
@@ -118,13 +118,13 @@ export default function Disbursements() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 mb-5">
-        <input type="text" placeholder="ค้นหารายการ, คนเบิก..." className="input-field max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
-        <select className="input-field w-36" value={filterType} onChange={e => setFilterType(e.target.value)}>
+      <div className="flex flex-col sm:flex-row gap-3 mb-5">
+        <input type="text" placeholder="ค้นหารายการ, คนเบิก..." className="input-field sm:max-w-xs" value={search} onChange={e => setSearch(e.target.value)} />
+        <select className="input-field sm:w-36" value={filterType} onChange={e => setFilterType(e.target.value)}>
           <option value="all">ทุกประเภท</option>
           {TYPE_OPT.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
-        <select className="input-field w-36" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+        <select className="input-field sm:w-36" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="all">ทุกสถานะ</option>
           {STATUS_OPT.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
@@ -139,7 +139,8 @@ export default function Disbursements() {
         </div>
       ) : (
         <div className="card overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">วันที่</th>
@@ -198,6 +199,7 @@ export default function Disbursements() {
               ))}
             </tbody>
           </table>
+          </div>
           {filtered.length === 0 && (
             <div className="text-center py-12 text-gray-400">
               <p className="text-3xl mb-2">💸</p>

@@ -164,7 +164,7 @@ export default function ProjectDetail() {
 
       {/* Project Header */}
       <div className="card p-5 mb-5">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <span className={project.Status === 'Done' ? 'badge-done' : 'badge-process'}>{project.Status}</span>
@@ -183,7 +183,7 @@ export default function ProjectDetail() {
             </div>
           </div>
           {/* Financial summary */}
-          <div className="text-right ml-8 min-w-[180px]">
+          <div className="sm:text-right sm:ml-8 sm:min-w-[180px]">
             <div className="bg-blue-50 rounded-xl p-4 space-y-2">
               <div>
                 <p className="text-xs text-gray-400">Net Price</p>
@@ -211,7 +211,8 @@ export default function ProjectDetail() {
         {docs.length === 0 ? (
           <p className="text-gray-400 text-sm text-center py-4">ยังไม่มีเอกสาร</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[400px]">
             <thead><tr className="border-b border-gray-100">
               <th className="text-left py-2 text-xs text-gray-400 font-medium">ชื่อเอกสาร</th>
               <th className="text-left py-2 text-xs text-gray-400 font-medium">วันที่</th>
@@ -242,6 +243,7 @@ export default function ProjectDetail() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -254,7 +256,8 @@ export default function ProjectDetail() {
         {costs.length === 0 ? (
           <p className="text-gray-400 text-sm text-center py-4">ยังไม่มีค่าใช้จ่าย</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[540px]">
             <thead><tr className="border-b border-gray-100">
               <th className="text-left py-2 text-xs text-gray-400 font-medium">รายการ</th>
               <th className="text-right py-2 text-xs text-gray-400 font-medium">จำนวน</th>
@@ -304,6 +307,7 @@ export default function ProjectDetail() {
               </tr>
             </tfoot>
           </table>
+          </div>
         )}
       </div>
 

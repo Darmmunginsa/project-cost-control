@@ -132,15 +132,15 @@ export default function Projects() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <input
           type="text"
           placeholder="ค้นหา Project, Vendor, QT..."
-          className="input-field max-w-xs"
+          className="input-field sm:max-w-xs"
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
-        <select className="input-field w-40" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+        <select className="input-field sm:w-40" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="all">ทั้งหมด</option>
           <option value="On Process">On Process</option>
           <option value="Done">Done</option>
@@ -164,7 +164,8 @@ export default function Projects() {
                   <span className="text-gray-400">({items.length})</span>
                 </h2>
                 <div className="card overflow-hidden">
-                  <table className="w-full text-sm">
+                  <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[640px]">
                     <thead className="bg-gray-50 border-b border-gray-100">
                       <tr>
                         <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">No.</th>
@@ -218,6 +219,7 @@ export default function Projects() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </div>
             )

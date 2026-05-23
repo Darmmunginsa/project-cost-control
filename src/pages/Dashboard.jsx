@@ -112,13 +112,13 @@ export default function Dashboard() {
           {/* Projects Stats */}
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">สถานะ Projects</h2>
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <StatCard label="งานคงค้าง (On Process)" value={summary['งานคงค้าง']} icon="🔄" color="text-blue-600" linkTo="/projects" />
-            <StatCard label="งานที่เสร็จแล้ว (Done)" value={summary['งานที่ทำเสร็จแล้ว']} icon="✅" color="text-green-600" linkTo="/projects" />
+            <StatCard label="งานคงค้าง" value={summary['งานคงค้าง']} icon="🔄" color="text-blue-600" linkTo="/projects" />
+            <StatCard label="งานเสร็จแล้ว" value={summary['งานที่ทำเสร็จแล้ว']} icon="✅" color="text-green-600" linkTo="/projects" />
           </div>
 
           {/* Financial Stats */}
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">ข้อมูลการเงิน</h2>
-          <div className="grid grid-cols-2 gap-4 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
             <StatCard
               label="รายได้สุทธิ"
               value={formatCurrency(summary['รายได้สุทธิ'])}
@@ -133,7 +133,7 @@ export default function Dashboard() {
               color="text-red-500"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <StatCard
               label="กำไร"
               value={formatCurrency(summary['กำไร'])}
@@ -151,7 +151,7 @@ export default function Dashboard() {
 
           {/* Customer Payment */}
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">ลูกค้าค้างชำระ</h2>
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <StatCard
               label="Project ที่ลูกค้ายังไม่จ่าย"
               value={summary['รอพิจรณาเพื่อจ่าย']}
@@ -171,7 +171,7 @@ export default function Dashboard() {
 
           {/* Disbursement Stats */}
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">การเบิกจ่าย</h2>
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <StatCard
               label="รายการเบิกที่รอจ่าย"
               value={summary['อื่นๆที่รอจ่าย']}
@@ -195,7 +195,7 @@ export default function Dashboard() {
                 <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">ส่วนแบ่งกำไรหุ้นส่วน</h2>
                 <Link to="/settings" className="text-xs text-blue-500 hover:underline">⚙️ ตั้งค่า</Link>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {summary.profitSharing.map((p, i) => (
                   <ProfitShareCard key={i} partner={p} />
                 ))}
