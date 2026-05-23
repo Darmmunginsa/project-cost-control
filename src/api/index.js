@@ -4,9 +4,16 @@ function getToken() {
   return localStorage.getItem('pcc_token');
 }
 
+function getCurrentUser() {
+  try {
+    const u = JSON.parse(localStorage.getItem('pcc_user') || '{}');
+    return u.displayName || u.username || '';
+  } catch { return ''; }
+}
+
 async function call(action, params = {}) {
   const token = getToken();
-  const body = { action, token, ...params };
+  const body = { action, token, _user: getCurrentUser(), ...params };
 
   const res = await fetch(APPS_SCRIPT_URL, {
     method: 'POST',
@@ -93,3 +100,6 @@ export const getPartners = () => call('getPartners');
 export const addPartner = (data) => call('addPartner', data);
 export const updatePartner = (data) => call('updatePartner', data);
 export const deletePartner = (id) => call('deletePartner', { id });
+
+// ===== LOGS =====
+export const getLogs = () => call('getLogs');

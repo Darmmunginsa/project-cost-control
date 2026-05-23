@@ -56,25 +56,25 @@ function handleRequest(e) {
       case 'getProject':        result = getProject(data.id); break;
       case 'addProject':        result = addProject(data); break;
       case 'updateProject':     result = updateProject(data); break;
-      case 'deleteProject':     result = deleteProject(data.id); break;
+      case 'deleteProject':     result = deleteProject(data.id, data._user); break;
 
       // Project Costs
       case 'getCosts':          result = getCosts(data.projectId); break;
       case 'addCost':           result = addCost(data); break;
       case 'updateCost':        result = updateCost(data); break;
-      case 'deleteCost':        result = deleteCost(data.id); break;
+      case 'deleteCost':        result = deleteCost(data.id, data._user); break;
 
       // Project Documents
       case 'getDocuments':      result = getDocuments(data.projectId); break;
       case 'addDocument':       result = addDocument(data); break;
       case 'updateDocument':    result = updateDocument(data); break;
-      case 'deleteDocument':    result = deleteDocument(data.id); break;
+      case 'deleteDocument':    result = deleteDocument(data.id, data._user); break;
 
       // Disbursements
       case 'getDisbursements':  result = getDisbursements(); break;
       case 'addDisbursement':   result = addDisbursement(data); break;
       case 'updateDisbursement':result = updateDisbursement(data); break;
-      case 'deleteDisbursement':result = deleteDisbursement(data.rowIndex); break;
+      case 'deleteDisbursement':result = deleteDisbursement(data.rowIndex, data._user); break;
 
       // Summary
       case 'getSummary':        result = getSummary(); break;
@@ -83,7 +83,7 @@ function handleRequest(e) {
       case 'getPartners':       result = getPartners(); break;
       case 'addPartner':        result = addPartner(data); break;
       case 'updatePartner':     result = updatePartner(data); break;
-      case 'deletePartner':     result = deletePartner(data.id); break;
+      case 'deletePartner':     result = deletePartner(data.id, data._user); break;
 
       // File Upload
       case 'uploadFile':        result = uploadFile(data); break;
@@ -92,7 +92,10 @@ function handleRequest(e) {
       case 'getUsers':          result = getUsers(); break;
       case 'addUser':           result = addUser(data); break;
       case 'updateUser':        result = updateUser(data); break;
-      case 'deleteUser':        result = deleteUser(data.id); break;
+      case 'deleteUser':        result = deleteUser(data.id, data._user); break;
+
+      // Logs
+      case 'getLogs':           result = getLogs(); break;
 
       default:
         result = { success: false, error: 'Unknown action: ' + action };
@@ -239,6 +242,7 @@ function addProject(data) {
     return data[h] !== undefined ? data[h] : '';
   });
   sheet.appendRow(row);
+  addLog(data._user, 'เพิ่ม', 'Projects', data['ProjectName'] || id);
   return { success: true, id };
 }
 
@@ -251,15 +255,18 @@ function updateProject(data) {
 
   const row = headers.map(h => data[h] !== undefined ? data[h] : project[h] || '');
   sheet.getRange(project._rowIndex, 1, 1, headers.length).setValues([row]);
+  addLog(data._user, 'แก้ไข', 'Projects', data['ProjectName'] || data.ProjectID);
   return { success: true };
 }
 
-function deleteProject(id) {
+function deleteProject(id, user) {
   const sheet = getSheet(SHEET_PROJECTS);
   const projects = sheetToObjects(sheet);
   const project = projects.find(p => p.ProjectID === id);
   if (!project) return { success: false, error: 'Project not found' };
+  const name = project['ProjectName'] || id;
   sheet.deleteRow(project._rowIndex);
+  addLog(user, 'ลบ', 'Projects', name);
   return { success: true };
 }
 
@@ -280,6 +287,7 @@ function addCost(data) {
     return data[h] !== undefined ? data[h] : '';
   });
   sheet.appendRow(row);
+  addLog(data._user, 'เพิ่ม', 'Costs', data['CostName'] || id);
   return { success: true, id };
 }
 
@@ -291,15 +299,18 @@ function updateCost(data) {
   if (!cost) return { success: false, error: 'Cost not found' };
   const row = headers.map(h => data[h] !== undefined ? data[h] : cost[h] || '');
   sheet.getRange(cost._rowIndex, 1, 1, headers.length).setValues([row]);
+  addLog(data._user, 'แก้ไข', 'Costs', data['CostName'] || data.CostID);
   return { success: true };
 }
 
-function deleteCost(id) {
+function deleteCost(id, user) {
   const sheet = getSheet(SHEET_COSTS);
   const costs = sheetToObjects(sheet);
   const cost = costs.find(c => c.CostID === id);
   if (!cost) return { success: false, error: 'Cost not found' };
+  const name = cost['CostName'] || id;
   sheet.deleteRow(cost._rowIndex);
+  addLog(user, 'ลบ', 'Costs', name);
   return { success: true };
 }
 
@@ -320,6 +331,7 @@ function addDocument(data) {
     return data[h] !== undefined ? data[h] : '';
   });
   sheet.appendRow(row);
+  addLog(data._user, 'เพิ่ม', 'Documents', data['DocName'] || id);
   return { success: true, id };
 }
 
@@ -331,15 +343,18 @@ function updateDocument(data) {
   if (!doc) return { success: false, error: 'Document not found' };
   const row = headers.map(h => data[h] !== undefined ? data[h] : doc[h] || '');
   sheet.getRange(doc._rowIndex, 1, 1, headers.length).setValues([row]);
+  addLog(data._user, 'แก้ไข', 'Documents', data['DocName'] || data.DocID);
   return { success: true };
 }
 
-function deleteDocument(id) {
+function deleteDocument(id, user) {
   const sheet = getSheet(SHEET_DOCUMENTS);
   const docs = sheetToObjects(sheet);
   const doc = docs.find(d => d.DocID === id);
   if (!doc) return { success: false, error: 'Document not found' };
+  const name = doc['DocName'] || id;
   sheet.deleteRow(doc._rowIndex);
+  addLog(user, 'ลบ', 'Documents', name);
   return { success: true };
 }
 
@@ -355,6 +370,7 @@ function addDisbursement(data) {
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const row = headers.map(h => data[h] !== undefined ? data[h] : '');
   sheet.appendRow(row);
+  addLog(data._user, 'เพิ่ม', 'Disbursements', data['รายการที่เบิก'] || '');
   return { success: true };
 }
 
@@ -366,12 +382,17 @@ function updateDisbursement(data) {
   if (!item) return { success: false, error: 'Disbursement not found' };
   const row = headers.map(h => data[h] !== undefined ? data[h] : item[h] || '');
   sheet.getRange(item._rowIndex, 1, 1, headers.length).setValues([row]);
+  addLog(data._user, 'แก้ไข', 'Disbursements', data['รายการที่เบิก'] || '');
   return { success: true };
 }
 
-function deleteDisbursement(rowIndex) {
+function deleteDisbursement(rowIndex, user) {
   const sheet = getSheet(SHEET_DISBURSEMENTS);
+  const items = sheetToObjects(sheet);
+  const item = items.find(i => i._rowIndex === parseInt(rowIndex));
+  const name = item ? (item['รายการที่เบิก'] || 'rowIndex:' + rowIndex) : 'rowIndex:' + rowIndex;
   sheet.deleteRow(parseInt(rowIndex));
+  addLog(user, 'ลบ', 'Disbursements', name);
   return { success: true };
 }
 
@@ -501,6 +522,7 @@ function addPartner(data) {
     return data[h] !== undefined ? data[h] : '';
   });
   sheet.appendRow(row);
+  addLog(data._user, 'เพิ่ม', 'Partners', data['Name'] || id);
   return { success: true, id };
 }
 
@@ -516,16 +538,19 @@ function updatePartner(data) {
     return data[h] !== undefined ? data[h] : (partner[h] || '');
   });
   sheet.getRange(partner._rowIndex, 1, 1, headers.length).setValues([row]);
+  addLog(data._user, 'แก้ไข', 'Partners', data['Name'] || data.PartnerID);
   return { success: true };
 }
 
-function deletePartner(id) {
+function deletePartner(id, user) {
   const sheet = getSheet(SHEET_PARTNERS);
   if (!sheet) return { success: false, error: 'Partners sheet not found' };
   const partners = sheetToObjects(sheet);
   const partner = partners.find(p => p.PartnerID === id);
   if (!partner) return { success: false, error: 'Partner not found' };
+  const name = partner['Name'] || id;
   sheet.deleteRow(partner._rowIndex);
+  addLog(user, 'ลบ', 'Partners', name);
   return { success: true };
 }
 
@@ -577,6 +602,7 @@ function addUser(data) {
     return data[h] !== undefined ? data[h] : '';
   });
   sheet.appendRow(row);
+  addLog(data._user, 'เพิ่ม', 'Users', data['Username'] || id);
   return { success: true, id };
 }
 
@@ -601,14 +627,63 @@ function updateUser(data) {
     return data[h] !== undefined ? data[h] : user[h] || '';
   });
   sheet.getRange(user._rowIndex, 1, 1, headers.length).setValues([row]);
+  const detail = data.Password ? 'เปลี่ยนรหัสผ่าน' : (data.DisplayName ? 'เปลี่ยนชื่อ' : 'แก้ไขข้อมูล');
+  addLog(data._user, 'แก้ไข', 'Users', user['Username'] || data.UserID, detail);
   return { success: true };
 }
 
-function deleteUser(id) {
+function deleteUser(id, user) {
   const sheet = getSheet(SHEET_USERS);
+  if (!sheet) return { success: false, error: 'Users sheet not found' };
   const users = sheetToObjects(sheet);
-  const user = users.find(u => u.UserID === id);
-  if (!user) return { success: false, error: 'User not found' };
-  sheet.deleteRow(user._rowIndex);
+  const target = users.find(u => u.UserID === id);
+  if (!target) return { success: false, error: 'User not found' };
+  const name = target['Username'] || id;
+  sheet.deleteRow(target._rowIndex);
+  addLog(user, 'ลบ', 'Users', name);
   return { success: true };
+}
+// ===== TRANSACTION LOGS =====
+const SHEET_LOGS = 'Logs';
+
+function ensureLogsSheet() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(SHEET_LOGS);
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_LOGS);
+    sheet.getRange(1, 1, 1, 6).setValues([['Timestamp', 'User', 'Action', 'Module', 'ItemName', 'Detail']]);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1, 6).setFontWeight('bold').setBackground('#f3f4f6');
+    sheet.setColumnWidth(1, 160);
+    sheet.setColumnWidth(2, 100);
+    sheet.setColumnWidth(3, 80);
+    sheet.setColumnWidth(4, 120);
+    sheet.setColumnWidth(5, 200);
+    sheet.setColumnWidth(6, 200);
+  }
+  return sheet;
+}
+
+function addLog(user, action, module, itemName, detail) {
+  try {
+    const sheet = ensureLogsSheet();
+    const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+    sheet.appendRow([timestamp, user || 'system', action, module, itemName || '', detail || '']);
+  } catch(e) {
+    // ไม่ให้ log error หยุด main operation
+  }
+}
+
+function getLogs() {
+  const sheet = ensureLogsSheet();
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return { success: true, data: [] };
+  const headers = data[0];
+  const rows = data.slice(1).reverse(); // newest first
+  const logs = rows.map(function(row) {
+    var obj = {};
+    headers.forEach(function(h, i) { obj[h] = row[i] || ''; });
+    return obj;
+  });
+  return { success: true, data: logs };
 }
