@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getProjects, addProject, updateProject, deleteProject, getPartners } from '../api';
+import { useAuth } from '../context/AuthContext';
 import { formatCurrency, formatDate, formatDateInput, today } from '../utils/formatters';
 import Modal from '../components/Modal';
 import toast from 'react-hot-toast';
@@ -15,6 +16,8 @@ const EMPTY_FORM = {
 };
 
 export default function Projects() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [projects, setProjects] = useState([]);
   const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -208,7 +211,7 @@ export default function Projects() {
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button onClick={() => openEdit(p)} className="text-gray-400 hover:text-blue-600 p-1">✏️</button>
-                              <button onClick={() => setDeleteConfirm(p)} className="text-gray-400 hover:text-red-500 p-1">🗑️</button>
+                              {isAdmin && <button onClick={() => setDeleteConfirm(p)} className="text-gray-400 hover:text-red-500 p-1">🗑️</button>}
                             </div>
                           </td>
                         </tr>

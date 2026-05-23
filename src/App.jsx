@@ -37,7 +37,7 @@ function AppRoutes() {
       <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
       <Route path="/disbursements" element={<ProtectedRoute><Disbursements /></ProtectedRoute>} />
       <Route path="/users" element={<ProtectedRoute adminOnly><Users /></ProtectedRoute>} />
-      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute adminOnly><Settings /></ProtectedRoute>} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

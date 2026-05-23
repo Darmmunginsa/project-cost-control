@@ -1,15 +1,18 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const navItems = [
+const baseNavItems = [
   { path: '/dashboard', label: 'ภาพรวม', icon: '📊' },
   { path: '/projects', label: 'Projects', icon: '📁' },
   { path: '/disbursements', label: 'เบิกจ่าย', icon: '💸' },
-  { path: '/settings', label: 'ตั้งค่า', icon: '⚙️' },
 ];
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  const navItems = isAdmin
+    ? [...baseNavItems, { path: '/settings', label: 'ตั้งค่า', icon: '⚙️' }]
+    : baseNavItems;
   const location = useLocation();
   const navigate = useNavigate();
 

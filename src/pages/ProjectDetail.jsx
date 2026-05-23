@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
   getProject, updateProject,
   getCosts, addCost, updateCost, deleteCost,
@@ -25,6 +26,8 @@ function parseFileField(val) {
 export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
 
   const [project, setProject] = useState(null);
   const [costs, setCosts] = useState([]);
@@ -232,7 +235,7 @@ export default function ProjectDetail() {
                   <td className="py-2.5">
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100">
                       <button onClick={() => openEditDoc(d)} className="text-gray-400 hover:text-blue-500 p-1">✏️</button>
-                      <button onClick={() => handleDeleteDoc(d)} className="text-gray-400 hover:text-red-500 p-1">🗑️</button>
+                      {isAdmin && <button onClick={() => handleDeleteDoc(d)} className="text-gray-400 hover:text-red-500 p-1">🗑️</button>}
                     </div>
                   </td>
                 </tr>
@@ -287,7 +290,7 @@ export default function ProjectDetail() {
                   <td className="py-2.5">
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100">
                       <button onClick={() => openEditCost(c)} className="text-gray-400 hover:text-blue-500 p-1">✏️</button>
-                      <button onClick={() => handleDeleteCost(c)} className="text-gray-400 hover:text-red-500 p-1">🗑️</button>
+                      {isAdmin && <button onClick={() => handleDeleteCost(c)} className="text-gray-400 hover:text-red-500 p-1">🗑️</button>}
                     </div>
                   </td>
                 </tr>

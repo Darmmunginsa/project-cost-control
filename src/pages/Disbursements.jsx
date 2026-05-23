@@ -4,6 +4,7 @@ import { formatCurrency, formatDate, formatDateInput, today } from '../utils/for
 import Modal from '../components/Modal';
 import FileUpload from '../components/FileUpload';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 const STATUS_OPT = ['จ่ายแล้ว', 'รอพิจรณา', 'ยังไม่ได้จ่าย'];
 const TYPE_OPT   = ['ใช้ส่วนตัว', 'ใช้ในบริษัท'];
@@ -18,6 +19,8 @@ function parseFileField(val) {
 }
 
 export default function Disbursements() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -188,7 +191,7 @@ export default function Disbursements() {
                   <td className="px-4 py-3">
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100">
                       <button onClick={() => openEdit(item)} className="text-gray-400 hover:text-blue-500 p-1">✏️</button>
-                      <button onClick={() => handleDelete(item)} className="text-gray-400 hover:text-red-500 p-1">🗑️</button>
+                      {isAdmin && <button onClick={() => handleDelete(item)} className="text-gray-400 hover:text-red-500 p-1">🗑️</button>}
                     </div>
                   </td>
                 </tr>
