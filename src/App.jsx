@@ -54,12 +54,16 @@ export default function App() {
       <HashRouter>
         <AppRoutes />
         <Toaster
-          position="top-right"
+          position="top-center"
           toastOptions={{
             style: { fontFamily: 'Sarabun, sans-serif', fontSize: '14px' },
             success: { duration: 3000 },
             error: { duration: 5000 },
           }}
+          containerStyle={{
+            top: 20,
+          }}
+          containerClassName="toast-container"
         />
       </HashRouter>
       </ThemeProvider>
