@@ -108,8 +108,10 @@ export default function Settings() {
                   <div>
                     <p className="font-semibold text-gray-900">{p.Name}</p>
                     <p className="text-xs text-gray-400">
-                      เชื่อมกับชื่อ: <span className="font-mono bg-gray-200 px-1 rounded">{p.DisbursementName || '-'}</span>
-                      <span className="ml-1">(ในรายการเบิกจ่าย)</span>
+                      คนเบิก: <span className="font-mono bg-gray-200 px-1 rounded">{p.DisbursementName || '-'}</span>
+                      {p.DisbursementType && (
+                        <span className="ml-1">· ประเภท: <span className="font-mono bg-purple-100 text-purple-600 px-1 rounded">{p.DisbursementType}</span></span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -155,6 +157,18 @@ export default function Settings() {
               onChange={e => setForm({...form, DisbursementName: e.target.value})}
               placeholder="ชื่อที่ใช้ในช่อง 'คนเบิก' เช่น ดาม" />
             <p className="text-xs text-gray-400 mt-1">ต้องตรงกับชื่อในรายการเบิกจ่ายทุกตัวอักษร</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              นับเฉพาะประเภท
+            </label>
+            <select className="input-field" value={form.DisbursementType || ''}
+              onChange={e => setForm({...form, DisbursementType: e.target.value})}>
+              <option value="">ทั้งหมด (ไม่กรอง)</option>
+              <option value="ใช้ส่วนตัว">ใช้ส่วนตัว</option>
+              <option value="ใช้ในบริษัท">ใช้ในบริษัท</option>
+            </select>
+            <p className="text-xs text-gray-400 mt-1">เบิกประเภทนี้เท่านั้นที่นับหักออกจากส่วนแบ่งกำไร</p>
           </div>
         </div>
         <div className="flex justify-end gap-3 mt-5">

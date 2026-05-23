@@ -377,23 +377,58 @@ function getSummary() {
 
   const totalRevenue = projects.reduce((sum, p) => sum + (parseFloat(p.NetPrice) || 0), 0);
   const totalCost = costs.reduce((sum, c) => sum + (parseFloat(c.Amount) || 0), 0);
-  const profit = totalRevenue - totalCost;
+  const totalProfit = totalRevenue - totalCost;
 
   const pendingPayment = projects.filter(p => p.PaymentStatus === 'Pending').length;
   const totalDisbursed = disbursements.reduce((sum, d) => sum + (parseFloat(d['จำนวนเงิน']) || 0), 0);
   const pendingDisbursements = disbursements.filter(d => d['สถานะ'] !== 'จ่ายแล้ว').length;
 
-  // คำนวณส่วนแบ่งกำไรของแต่ละหุ้นส่วน
-  const profitSharing = partners.map(p => {
-    const pct = parseFloat(p.Percentage) || 0;
-    const share = profit * pct / 100;
-    const disbursed = disbursements
-      .filter(d => d['คนเบิก'] && d['คนเบิก'].toString().trim() === (p.DisbursementName || '').trim())
-      .reduce((sum, d) => sum + (parseFloat(d['จำนวนเงิน']) || 0), 0);
+  // คำนวณส่วนแบ่งกำไรแบบ per-project (รองรับ ProjectOwner = 70%)
+  const partnerShareMap = {};
+  partners.forEach(p => { partnerShareMap[p.PartnerID] = 0; });
+
+  projects.forEach(function(project) {
+    var projectCosts = costs.filter(function(c) { return c.ProjectID === project.ProjectID; });
+    var projectCostTotal = projectCosts.reduce(function(sum, c) { return sum + (parseFloat(c.Amount) || 0); }, 0);
+    var projectProfit = (parseFloat(project.NetPrice) || 0) - projectCostTotal;
+    var owner = (project.ProjectOwner || '').toString().trim();
+
+    partners.forEach(function(p) {
+      var share = 0;
+      if (owner !== '' && owner !== 'ไม่มีเจ้าของ') {
+        var isOwner = (p.Name || '').trim() === owner || (p.DisbursementName || '').trim() === owner;
+        if (isOwner) {
+          share = projectProfit * 0.70;
+        } else {
+          // 30% แบ่งระหว่างคนที่เหลือตาม % สัดส่วนปกติ
+          var nonOwners = partners.filter(function(p2) {
+            return (p2.Name || '').trim() !== owner && (p2.DisbursementName || '').trim() !== owner;
+          });
+          var totalNonOwnerPct = nonOwners.reduce(function(s, p2) { return s + (parseFloat(p2.Percentage) || 0); }, 0);
+          var myPct = totalNonOwnerPct > 0 ? (parseFloat(p.Percentage) || 0) / totalNonOwnerPct : 0;
+          share = projectProfit * 0.30 * myPct;
+        }
+      } else {
+        // ไม่มีเจ้าของ → แบ่งตาม % ปกติ
+        share = projectProfit * (parseFloat(p.Percentage) || 0) / 100;
+      }
+      partnerShareMap[p.PartnerID] += share;
+    });
+  });
+
+  const profitSharing = partners.map(function(p) {
+    var share = partnerShareMap[p.PartnerID] || 0;
+    var disbursed = disbursements
+      .filter(function(d) {
+        var nameMatch = d['คนเบิก'] && d['คนเบิก'].toString().trim() === (p.DisbursementName || '').trim();
+        var typeMatch = !p.DisbursementType || p.DisbursementType === '' || d['ประเภท'] === p.DisbursementType;
+        return nameMatch && typeMatch;
+      })
+      .reduce(function(sum, d) { return sum + (parseFloat(d['จำนวนเงิน']) || 0); }, 0);
     return {
       id: p.PartnerID,
       name: p.Name,
-      percentage: pct,
+      percentage: parseFloat(p.Percentage) || 0,
       share: share,
       disbursed: disbursed,
       remaining: share - disbursed
@@ -407,7 +442,7 @@ function getSummary() {
       งานที่ทำเสร็จแล้ว: done.length,
       รายได้สุทธิ: totalRevenue,
       ต้นทุนรวม: totalCost,
-      กำไร: profit,
+      กำไร: totalProfit,
       รอพิจรณาเพื่อจ่าย: pendingPayment,
       อื่นๆที่รอจ่าย: pendingDisbursements,
       สรุปเบิกจ่ายตาม: totalDisbursed,
@@ -422,7 +457,13 @@ function getPartnersData() {
   let sheet = ss.getSheetByName(SHEET_PARTNERS);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_PARTNERS);
-    sheet.getRange(1, 1, 1, 4).setValues([['PartnerID', 'Name', 'Percentage', 'DisbursementName']]);
+    sheet.getRange(1, 1, 1, 5).setValues([['PartnerID', 'Name', 'Percentage', 'DisbursementName', 'DisbursementType']]);
+  } else {
+    // migrate: add DisbursementType column if missing
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    if (headers.indexOf('DisbursementType') === -1) {
+      sheet.getRange(1, headers.length + 1).setValue('DisbursementType');
+    }
   }
   return sheetToObjects(sheet);
 }
@@ -436,10 +477,10 @@ function addPartner(data) {
   let sheet = ss.getSheetByName(SHEET_PARTNERS);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_PARTNERS);
-    sheet.getRange(1, 1, 1, 4).setValues([['PartnerID', 'Name', 'Percentage', 'DisbursementName']]);
+    sheet.getRange(1, 1, 1, 5).setValues([['PartnerID', 'Name', 'Percentage', 'DisbursementName', 'DisbursementType']]);
   }
   const id = generateId();
-  sheet.appendRow([id, data.Name || '', data.Percentage || 0, data.DisbursementName || '']);
+  sheet.appendRow([id, data.Name || '', data.Percentage || 0, data.DisbursementName || '', data.DisbursementType || '']);
   return { success: true, id };
 }
 
@@ -447,14 +488,14 @@ function updatePartner(data) {
   const sheet = getSheet(SHEET_PARTNERS);
   if (!sheet) return { success: false, error: 'Partners sheet not found' };
   const partners = sheetToObjects(sheet);
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const partner = partners.find(p => p.PartnerID === data.PartnerID);
   if (!partner) return { success: false, error: 'Partner not found' };
-  sheet.getRange(partner._rowIndex, 1, 1, 4).setValues([[
-    partner.PartnerID,
-    data.Name || partner.Name,
-    data.Percentage !== undefined ? data.Percentage : partner.Percentage,
-    data.DisbursementName !== undefined ? data.DisbursementName : partner.DisbursementName
-  ]]);
+  const row = headers.map(function(h) {
+    if (h === 'PartnerID') return partner.PartnerID;
+    return data[h] !== undefined ? data[h] : (partner[h] || '');
+  });
+  sheet.getRange(partner._rowIndex, 1, 1, headers.length).setValues([row]);
   return { success: true };
 }
 

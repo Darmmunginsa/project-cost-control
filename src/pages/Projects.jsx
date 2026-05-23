@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getProjects, addProject, updateProject, deleteProject } from '../api';
+import { getProjects, addProject, updateProject, deleteProject, getPartners } from '../api';
 import { formatCurrency, formatDate, formatDateInput, today } from '../utils/formatters';
 import Modal from '../components/Modal';
 import toast from 'react-hot-toast';
@@ -11,11 +11,12 @@ const PAYMENT_STATUS = ['Pending', 'Paid'];
 const EMPTY_FORM = {
   ProjectName: '', ProjectNo: '', MainVendor: '', SubVendor: '',
   QTNumber: '', Date: today(), NetPrice: '', Status: 'On Process',
-  Logs: '', PaymentDueDate: '', PaymentStatus: 'Pending',
+  Logs: '', PaymentDueDate: '', PaymentStatus: 'Pending', ProjectOwner: '',
 };
 
 export default function Projects() {
   const [projects, setProjects] = useState([]);
+  const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -29,8 +30,9 @@ export default function Projects() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await getProjects();
-      setProjects(res.data || []);
+      const [pRes, partRes] = await Promise.all([getProjects(), getPartners()]);
+      setProjects(pRes.data || []);
+      setPartners(partRes.data || []);
     } catch (err) {
       toast.error('โหลดข้อมูลไม่สำเร็จ: ' + err.message);
     } finally {
@@ -150,6 +152,7 @@ export default function Projects() {
                         <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Vendor หลัก</th>
                         <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">QT Number</th>
                         <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Net Price</th>
+                        <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">เจ้าของ</th>
                         <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">สถานะการชำระ</th>
                         <th className="px-4 py-3"></th>
                       </tr>
@@ -166,6 +169,11 @@ export default function Projects() {
                           <td className="px-4 py-3 text-gray-600">{p.MainVendor || '-'}</td>
                           <td className="px-4 py-3 text-gray-500 font-mono text-xs">{p.QTNumber || '-'}</td>
                           <td className="px-4 py-3 text-right font-semibold text-gray-800">{formatCurrency(p.NetPrice)}</td>
+                          <td className="px-4 py-3 text-center">
+                            {p.ProjectOwner
+                              ? <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">👑 {p.ProjectOwner}</span>
+                              : <span className="text-gray-300 text-xs">-</span>}
+                          </td>
                           <td className="px-4 py-3 text-center">
                             <span className={p.PaymentStatus === 'Paid' ? 'badge-paid' : 'badge-pending'}>
                               {p.PaymentStatus || 'Pending'}
@@ -246,6 +254,16 @@ export default function Projects() {
             <select className="input-field" value={form.PaymentStatus} onChange={e => setForm({...form, PaymentStatus: e.target.value})}>
               {PAYMENT_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">เจ้าของ Project</label>
+            <select className="input-field" value={form.ProjectOwner} onChange={e => setForm({...form, ProjectOwner: e.target.value})}>
+              <option value="">ไม่มีเจ้าของ (แบ่งตาม % ปกติ)</option>
+              {partners.map(p => (
+                <option key={p.PartnerID} value={p.Name}>{p.Name} → ได้ 70%</option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-400 mt-1">ถ้าเลือก → เจ้าของได้ 70%, อีกคนได้ 30%</p>
           </div>
           <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">หมายเหตุ / Logs</label>
